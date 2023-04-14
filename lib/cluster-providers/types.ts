@@ -23,6 +23,11 @@ export interface LaunchTemplateProps {
         [key: string]: string;
     }
 
+    /**
+     * Whether IMDSv2 should be required on worker nodes.
+     */
+    requireImdsv2?: boolean;
+
 }
 
 

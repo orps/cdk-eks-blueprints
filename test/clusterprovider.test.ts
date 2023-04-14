@@ -5,7 +5,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { CapacityType, KubernetesVersion } from 'aws-cdk-lib/aws-eks';
 import * as blueprints from '../lib';
-import { AsgClusterProvider, MngClusterProvider } from '../lib';
+import {AsgClusterProvider, MngClusterProvider, MngClusterProviderProps} from '../lib';
 
 test("Generic cluster provider correctly registers managed node groups", async () => {
     const app = new cdk.App();
@@ -111,6 +111,35 @@ test("Mng cluster provider correctly initializes managed node group", () => {
     
     expect(blueprint.getClusterInfo().nodeGroups).toBeDefined();
     expect(blueprint.getClusterInfo().nodeGroups!.length).toBe(1);
+});
+
+test("A Mng cluster provider can be configured to require nodes to use IMDSv2", () => {
+
+    const app = new cdk.App();
+
+    const props: MngClusterProviderProps = {
+        version: KubernetesVersion.V1_24,
+        launchTemplate: {
+            requireImdsv2: true
+        }
+    };
+
+    const clusterProvider = new blueprints.MngClusterProvider(props);
+
+    const stack = blueprints.EksBlueprint.builder()
+        .account('123456789').region('us-west-2')
+        .clusterProvider(clusterProvider)
+        .build(app, "stack-imdsv2-required");
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties("AWS::EC2::LaunchTemplate", {
+        LaunchTemplateData: {
+            MetadataOptions: {
+                HttpTokens: "required"
+            }
+        }
+    });
 });
 
 test("Asg cluster provider correctly initializes self-managed node group", () => {

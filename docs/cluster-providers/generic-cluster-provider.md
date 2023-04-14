@@ -65,7 +65,8 @@ const clusterProvider = new blueprints.GenericClusterProvider({
                     "Type": "Managed-Node-Group",
                     "LaunchTemplate": "Custom",
                     "Instance": "SPOT"
-                }
+                },
+                requireImdsv2: true
             }
         }
     ],
